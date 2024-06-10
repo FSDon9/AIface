@@ -6,17 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>董繁森</title>
     <style>
-        /* 样式设置，使整个页面的内容居中 */
-        body {
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-        }
+       /* 在这里引入毛笔字字体文件，假设字体文件名为 'ZhiMangXing-Regular.ttf' */
+@font-face {
+    font-family: 'Zhi Mang Xing';
+    src: url('ZhiMangXing-Regular.ttf') format('truetype');
+}
+
+body {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Zhi Mang Xing', Arial, sans-serif; /* 将字体设置为毛笔字字体，如果字体加载失败则回退到Arial字体 */
+    background-color: rgb(253, 252, 252);
+    color: rgb(0, 0, 0);
+}
+
+h1 {
+    font-size: 5em; /* 可根据需要调整标题大小 */
+}
     </style>
 </head>
 <body>
